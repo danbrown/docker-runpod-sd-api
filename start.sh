@@ -10,8 +10,6 @@ then
     echo "run.sh file found, running it in the background in the ldm environment"
     conda run -n ldm bash -c "/workspace/run.sh &" &
 fi
-# python /workspace/stable-diffusion/scripts/relauncher.py &
-
 
 # Start SSH Service
 if [[ $PUBLIC_KEY ]]
