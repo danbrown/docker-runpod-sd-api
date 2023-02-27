@@ -1,7 +1,8 @@
-from diffusers import StableDiffusionPipeline
 import torch
 from sanic import Sanic, response
 import subprocess
+
+import app # app.py
 
 # Create the http server app
 server = Sanic("my_app")
@@ -25,19 +26,19 @@ def inference(request):
     except:
         model_inputs = request.json
 
-    # --- Move to app.inference() ---
-    model_id = "runwayml/stable-diffusion-v1-5"
-    pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
-    pipe = pipe.to("cuda")
+    try:
+        output = app.inference(model_inputs)
+    except Exception as err:
+        output = {
+            "error": {
+                "code": "APP_INFERENCE_ERROR",
+                "name": type(err).__name__,
+                "message": str(err),
+                "stack": traceback.format_exc(),
+            }
+        }
 
-    prompt = "a photo of an astronaut riding a horse on mars"
-    image = pipe(prompt).images[0]  
-        
-    image.save("output.png")
-    # ---
-
-    return response.json(model_inputs)
-
+    return response.json(output)
 
 if __name__ == '__main__':
     server.run(host='0.0.0.0', port=3000, workers=torch.cuda.device_count())
