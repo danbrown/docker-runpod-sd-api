@@ -47,7 +47,7 @@ def encodeBase64Image(image: PIL.Image) -> str:
   return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 def getScheduler(model_id: str, scheduler_id: str, load: bool) -> str:
-  print(f"Initializing {scheduler_id} for {MODEL_ID}...")
+  print(f"Initializing {scheduler_id} for {model_id}...")
 
   start = time.time()
 
@@ -63,26 +63,24 @@ def getScheduler(model_id: str, scheduler_id: str, load: bool) -> str:
   )
 
   diff = round((time.time() - start) * 1000)
-  print(f"Initialized {scheduler_id} for {MODEL_ID} in {diff}ms")
+  print(f"Initialized {scheduler_id} for {model_id} in {diff}ms")
 
   return inittedScheduler
 
 # load model
-def loadModel(model_id: str) -> StableDiffusionPipeline:
+def loadModel(model_id: str):
 
   start = time.time()
 
-  loadPipeline = (
-    StableDiffusionPipeline if PIPELINE == "ALL" else getattr(_pipelines, PIPELINE)
-  )
+  loadPipeline = StableDiffusionPipeline
 
-  scheduler = getScheduler(model_id, DEFAULT_SCHEDULER, False)
+  # scheduler = getScheduler(model_id, DEFAULT_SCHEDULER, False)
 
   model = loadPipeline.from_pretrained(
-    model_id=model_id, 
+    model_id, 
     torch_dtype=None if model_id not in FP16_MODELS else torch.float16,
     use_auth_token=HF_AUTH_TOKEN,
-    scheduler=scheduler,
+    # scheduler=scheduler,
   )
 
   load_time = round((time.time() - start) * 1000)
@@ -119,9 +117,8 @@ def inference(model_inputs):
     }
 
   pipe = StableDiffusionPipeline.from_pretrained(
-    model_id=model_id,
+    model_id,
     use_auth_token=HF_AUTH_TOKEN,
-    scheduler=getScheduler(model_id, scheduler_id, False),
   )
 
   pipe = pipe.to("cuda") # TODO make this configurable

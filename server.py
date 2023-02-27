@@ -1,11 +1,15 @@
 import torch
 from sanic import Sanic, response
 import subprocess
+import traceback
 
 import app # app.py
 
 # Create the http server app
 server = Sanic("my_app")
+
+# Init handler is called once when the server starts
+app.init()
 
 # Healthchecks verify that the environment is correct on Banana Serverless
 @server.route('/healthcheck', methods=["GET"])
@@ -37,6 +41,7 @@ def inference(request):
                 "stack": traceback.format_exc(),
             }
         }
+        print(output)
 
     return response.json(output)
 
