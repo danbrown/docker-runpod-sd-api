@@ -5,6 +5,7 @@ from io import BytesIO
 import PIL
 import os
 import time
+import requests
 
 PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
 HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
@@ -25,6 +26,13 @@ MODEL_DATA = {
     "revision": "fp16",
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT"]
   },
+  "timbrooks/instruct-pix2pix":{
+    "model_id": "timbrooks/instruct-pix2pix",
+    "slug": "instruct-pix2pix",
+    "precision": "fp16",
+    "revision": "fp16",
+    "pipelines": ["PIX2PIX"]
+  }
 }
 
 # pipelines
@@ -156,6 +164,22 @@ def getPipeline(model_id: str, pipeline_type: str):
 
   return pipeclass
   
+def normalizeImage(image, width, height) -> PIL.Image:
+  if image != None:
+    # image is a url
+    if 'http' in image: 
+        response = requests.get(image)
+        image = PIL.Image.open(BytesIO(response.content))
+    # image is a base64 data
+    elif 'data:image' in image:
+        image = PIL.Image.open(BytesIO(base64.b64decode(image).split(',')[1]))
+    # image is a base64 string splited
+    else:
+        image = decodeBase64Image(image)
+    # resize image to match required inputs
+    image = image.resize((width, height), resample=PIL.Image.LANCZOS)
+
+  return image
 
 
 # # This is called once when the server starts
@@ -176,7 +200,7 @@ def init():
 # # This is the main inference function that is called by the server
 def inference(model_inputs):
   model_id = model_inputs.get("model_id", None)
-  pipeline = loaded_models.get("pipeline", DEFAULT_PIPELINE)
+  pipeline = model_inputs.get("pipeline", DEFAULT_PIPELINE)
   prompt = model_inputs.get("prompt", None)
   negative_prompt = model_inputs.get("negative_prompt", None)
   scheduler_id = model_inputs.get("scheduler_id", DEFAULT_SCHEDULER)
@@ -185,18 +209,21 @@ def inference(model_inputs):
   guidance_scale = model_inputs.get("guidance_scale", 7.5)
   num_inference_steps = model_inputs.get("steps", 30)
   num_images_per_prompt = model_inputs.get("count", 1)
+  safe_mode = model_inputs.get("safe_mode", True)
 
   # special properties to trigger pipelines
-  init_image = model_inputs.get("init_image", None)
+  init_image = normalizeImage(model_inputs.get("init_image", None), width, height)
+  mask_image = normalizeImage(model_inputs.get("mask_image", None), width, height)
+  controlnet_hint = normalizeImage(model_inputs.get("controlnet_hint", None), width, height)
   strength = model_inputs.get("strength", 0.85)
-  mask_image = model_inputs.get("mask_image", None)
-  controlnet_hint = model_inputs.get("control_image", None)
+  image_guidance = model_inputs.get("image_guidance", 1.5)
 
   # seed generator
   seed = model_inputs.get("seed", None)
   if seed == None:
       generator = torch.Generator(device=device)
       generator.seed()
+      seed = generator.initial_seed()
   else:
       generator = torch.Generator(device=device).manual_seed(seed)
 
@@ -222,8 +249,7 @@ def inference(model_inputs):
   if model_id not in loaded_models:
     loaded_models[model_id] = loadModel(model_id)
 
-
-  # get model
+  # get model data
   model_data = MODEL_DATA[model_id]
 
   # get pipeline
@@ -244,13 +270,12 @@ def inference(model_inputs):
   pipe = pipe.to(device) 
 
   # remove safety checker
-  pipe.safety_checker = lambda images, clip_input: (images, False)
+  if not safe_mode:
+    pipe.safety_checker = None
 
   pipe_data = {
     "prompt": prompt,
     "negative_prompt": negative_prompt,
-    "width": width,
-    "height": height,
     "guidance_scale": guidance_scale,
     "generator": generator,
     "num_inference_steps": num_inference_steps,
@@ -258,16 +283,29 @@ def inference(model_inputs):
   }
 
   # add values for specific pipelines
-  if pipeline == "IMG2IMG" or pipeline == "INPAINT":
-    pipe_data["init_image"] = init_image
+  if pipeline == "TXT2IMG":
+    pipe_data["width"] = width
+    pipe_data["height"] = height
+  
+  if pipeline == "IMG2IMG":
+    pipe_data["image"] = init_image
     pipe_data["strength"] = strength
+  
   if pipeline == "INPAINT":
+    pipe_data["image"] = init_image
     pipe_data["mask_image"] = mask_image
+    pipe_data["strength"] = strength
+  
   if pipeline == "CONTROLNET":
     pipe_data["controlnet_hint"] = controlnet_hint
+
+  if pipeline == "PIX2PIX":
+    pipe_data["image"] = init_image
+    pipe_data["image_guidance_scale"] = image_guidance
+  
       
   # execute pipeline
-  images = pipe( **pipe_data )
+  images = pipe( **pipe_data ).images
       
   # convert to base64
   images_base64 = []
@@ -284,5 +322,8 @@ def inference(model_inputs):
     torch.cuda.empty_cache()
 
   return {
+    "model_id": model_id,
+    "pipeline": pipeline,
+    "initial_seed": seed,
     "images": images_base64
   }
