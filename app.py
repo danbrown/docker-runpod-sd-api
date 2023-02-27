@@ -6,12 +6,13 @@ import PIL
 import os
 import time
 import requests
+from huggingface_hub.repocard import RepoCard
 
 PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
 HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
 
 # models
-MODEL_DATA = {
+MODELS_DATA = {
   "runwayml/stable-diffusion-v1-5": {
     "model_id": "runwayml/stable-diffusion-v1-5",
     "slug": "sd-v1-5",
@@ -127,7 +128,7 @@ def loadModel(model_data: str):
 
   return pipe.to(device)
 
-
+# this will get the correct pipeline for the model
 def getPipeline(model_id: str, pipeline_type: str):
   pipeclass = None
 
@@ -136,8 +137,8 @@ def getPipeline(model_id: str, pipeline_type: str):
     raise Exception(f"Pipeline {pipeline_type} not available")
 
   # check if model id has a preset pipeline
-  if model_id in MODEL_DATA:
-    model_data = MODEL_DATA[model_id]
+  if model_id in MODELS_DATA:
+    model_data = MODELS_DATA[model_id]
     model_pipelines = model_data.get("pipelines", None)
 
     # if has only one pipeline, use it
@@ -163,7 +164,8 @@ def getPipeline(model_id: str, pipeline_type: str):
     pipeclass = StableDiffusionInstructPix2PixPipeline
 
   return pipeclass
-  
+
+# it will download the image ir is a url, or decode it if it is a base64 string. Then it will resize it to match the required inputs
 def normalizeImage(image, width, height) -> PIL.Image:
   if image != None:
     # image is a url
@@ -185,8 +187,8 @@ def normalizeImage(image, width, height) -> PIL.Image:
 # # This is called once when the server starts
 def init():
   # load models
-  for model_id in MODEL_DATA:
-    model_data = MODEL_DATA[model_id]
+  for model_id in MODELS_DATA:
+    model_data = MODELS_DATA[model_id]
     print(f"Loading {model_id}...")
     loaded_models[model_id] = loadModel(model_data)
     print(f"Loaded {model_id}")
@@ -203,6 +205,7 @@ def inference(model_inputs):
   pipeline = model_inputs.get("pipeline", DEFAULT_PIPELINE)
   prompt = model_inputs.get("prompt", None)
   negative_prompt = model_inputs.get("negative_prompt", None)
+  lora_model = model_inputs.get("lora_model", None)
   scheduler_id = model_inputs.get("scheduler_id", DEFAULT_SCHEDULER)
   width = model_inputs.get("width", 512)
   height = model_inputs.get("height", 512)
@@ -237,7 +240,7 @@ def inference(model_inputs):
     }
 
   # check if model is valid, if not return error
-  if model_id not in MODEL_DATA.keys():
+  if model_id not in MODELS_DATA.keys():
     return {
       "error": {
         "code": "INVALID_MODEL",
@@ -250,7 +253,7 @@ def inference(model_inputs):
     loaded_models[model_id] = loadModel(model_id)
 
   # get model data
-  model_data = MODEL_DATA[model_id]
+  model_data = MODELS_DATA[model_id]
 
   # get pipeline
   pipeclass = getPipeline(model_id, pipeline)
@@ -273,6 +276,7 @@ def inference(model_inputs):
   if not safe_mode:
     pipe.safety_checker = None
 
+  # general pipe input data
   pipe_data = {
     "prompt": prompt,
     "negative_prompt": negative_prompt,
@@ -282,7 +286,7 @@ def inference(model_inputs):
     "num_images_per_prompt": num_images_per_prompt,
   }
 
-  # add values for specific pipelines
+  # add values for specific pipelines, to avoid errors
   if pipeline == "TXT2IMG":
     pipe_data["width"] = width
     pipe_data["height"] = height
@@ -302,7 +306,32 @@ def inference(model_inputs):
   if pipeline == "PIX2PIX":
     pipe_data["image"] = init_image
     pipe_data["image_guidance_scale"] = image_guidance
-  
+
+  # load lora model
+  if lora_model != None:
+    lora_card = RepoCard.load(lora_model)
+    print(lora_card.data.to_dict())
+    if lora_card is None or lora_card.data.to_dict()["base_model"] is None:
+      try:
+        pipe.unet.load_attn_procs(lora_model)
+      except:
+        return {
+          "error": {
+            "code": "INVALID_LORA_MODEL",
+            "message": "Provided lora model is not valid"
+          }
+        }
+    else:
+      lora_base_model = lora_card.data.to_dict()["base_model"]
+      if model_id != lora_base_model:
+        return {
+          "error": {
+            "code": "INVALID_LORA_MODEL",
+            "message": f"Provided lora model is only compatible with {lora_base_model}, but {model_id} was provided"
+          }
+        }
+      else:
+        pipe.unet.load_attn_procs(lora_model)
       
   # execute pipeline
   images = pipe( **pipe_data ).images
