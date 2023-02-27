@@ -3,10 +3,6 @@ import torch
 from sanic import Sanic, response
 import subprocess
 
-# We do the model load-to-GPU step on server startup
-# so the model object is available globally for reuse
-# user_src.init()
-
 # Create the http server app
 server = Sanic("my_app")
 
@@ -29,9 +25,7 @@ def inference(request):
     except:
         model_inputs = request.json
 
-    # output = user_src.inference(model_inputs)
-
-    # --- Move to user_src.inference() ---
+    # --- Move to app.inference() ---
     model_id = "runwayml/stable-diffusion-v1-5"
     pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
     pipe = pipe.to("cuda")
@@ -46,4 +40,4 @@ def inference(request):
 
 
 if __name__ == '__main__':
-    server.run(host='0.0.0.0', port=3000, workers=1)
+    server.run(host='0.0.0.0', port=3000, workers=torch.cuda.device_count())

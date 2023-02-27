@@ -17,13 +17,10 @@ RUN git clone https://github.com/huggingface/diffusers && cd diffusers && \
   git checkout 39a3c77e0d4a22de189b02398cf2d003d299b4ae && cd ..
 RUN pip install -e diffusers
 
-# copy over the code
-
-ADD app.py .
-ADD server.py .
+# copy over run script, it will run the server in ldm environment
 ADD run.sh .
 
-# expose ports
+# expose ports, 8888 for jupyter, 3000 for the server
 EXPOSE 8888 3000
 
 # Start
