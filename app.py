@@ -12,8 +12,6 @@ HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
 MODEL_IDS = [
   "runwayml/stable-diffusion-v1-5",
   "hakurei/waifu-diffusion",
-  "runwayml/stable-diffusion-inpainting",
-  "stabilityai/stable-diffusion-2"
 ]
 
 FP16_MODELS = [
@@ -130,11 +128,13 @@ def inference(model_inputs):
     negative_prompt=negative_prompt,
     width=width,
     height=height,
-  )
+  ).images
       
   # convert to base64
-  images = [encodeBase64Image(image) for image in images]
+  images_base64 = []
+  for image in images:
+    images_base64.append("data:image/png;base64," + encodeBase64Image(image))
 
   return {
-    "images": images
+    "images": images_base64
   }
