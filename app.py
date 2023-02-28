@@ -308,30 +308,30 @@ def inference(model_inputs):
     pipe_data["image_guidance_scale"] = image_guidance
 
   # load lora model
-  if lora_model != None:
-    lora_card = RepoCard.load(lora_model)
-    print(lora_card.data.to_dict())
-    if lora_card is None or lora_card.data.to_dict()["base_model"] is None:
-      try:
-        pipe.unet.load_attn_procs(lora_model)
-      except:
-        return {
-          "error": {
-            "code": "INVALID_LORA_MODEL",
-            "message": "Provided lora model is not valid"
-          }
-        }
-    else:
-      lora_base_model = lora_card.data.to_dict()["base_model"]
-      if model_id != lora_base_model:
-        return {
-          "error": {
-            "code": "INVALID_LORA_MODEL",
-            "message": f"Provided lora model is only compatible with {lora_base_model}, but {model_id} was provided"
-          }
-        }
-      else:
-        pipe.unet.load_attn_procs(lora_model)
+  # if lora_model != None:
+  #   lora_card = RepoCard.load(lora_model)
+  #   print(lora_card.data.to_dict())
+  #   if lora_card is None or lora_card.data.to_dict()["base_model"] is None:
+  #     try:
+  #       pipe.unet.load_attn_procs(lora_model)
+  #     except:
+  #       return {
+  #         "error": {
+  #           "code": "INVALID_LORA_MODEL",
+  #           "message": "Provided lora model is not valid"
+  #         }
+  #       }
+  #   else:
+  #     lora_base_model = lora_card.data.to_dict()["base_model"]
+  #     if model_id != lora_base_model:
+  #       return {
+  #         "error": {
+  #           "code": "INVALID_LORA_MODEL",
+  #           "message": f"Provided lora model is only compatible with {lora_base_model}, but {model_id} was provided"
+  #         }
+  #       }
+  #     else:
+  #       pipe.unet.load_attn_procs(lora_model)
       
   # execute pipeline
   images = pipe( **pipe_data ).images

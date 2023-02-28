@@ -36,7 +36,7 @@ if __name__ == "__main__":
     
     pipeline = StableDiffusionPipeline.from_pretrained(
         args.model_id,
-        torch_dtype="fp16" if args.precision == "fp16" else None,
+        torch_dtype=torch.float16 if args.precision == "fp16" else None,
         revision="fp16" if args.revision == "fp16" else None
     )
     pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
@@ -110,3 +110,6 @@ if __name__ == "__main__":
     pipeline = pipeline.to(torch.float16).to("cuda")
     pipeline.safety_checker = lambda images, clip_input: (images, False)
 
+    pipeline.save_pretrained(
+        "test/converted_model"
+    )
