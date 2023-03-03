@@ -1,4 +1,9 @@
-from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline, StableDiffusionInstructPix2PixPipeline, StableDiffusionControlNetPipeline, ControlNetModel
+from diffusers import StableDiffusionPipeline
+from diffusers import StableDiffusionImg2ImgPipeline
+from diffusers import StableDiffusionInpaintPipeline
+from diffusers import StableDiffusionInstructPix2PixPipeline
+from diffusers import StableDiffusionControlNetPipeline, ControlNetModel
+from diffusers import schedulers as _schedulers
 import torch
 import base64
 from io import BytesIO
@@ -9,90 +14,14 @@ import gc
 import requests
 from huggingface_hub.repocard import RepoCard
 
-PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
-HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
-SAVE_IMAGES = os.getenv("SAVE_IMAGES", True)
-
-# models
-MODELS_DATA = {
-  "runwayml/stable-diffusion-v1-5": {
-    "model_id": "runwayml/stable-diffusion-v1-5",
-    "slug": "sd-v1-5",
-    "precision": "fp16",
-    "revision": "fp16",
-    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT"]
-  },
-  "hakurei/waifu-diffusion": {
-    "model_id": "hakurei/waifu-diffusion",
-    "slug": "waifu-diffusion",
-    "precision": "fp16",
-    "revision": "fp16",
-    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT"]
-  },
-  "timbrooks/instruct-pix2pix":{
-    "model_id": "timbrooks/instruct-pix2pix",
-    "slug": "instruct-pix2pix",
-    "precision": "fp16",
-    "revision": "fp16",
-    "pipelines": ["PIX2PIX"]
-  }
-}
-
-# pipelines
-PIPELINES = [
-    "TXT2IMG",
-    "IMG2IMG",
-    "INPAINT",
-    "CONTROLNET",
-    "PIX2PIX",
-]
-
-DEFAULT_PIPELINE = os.getenv("DEFAULT_PIPELINE", PIPELINES[0])
-
-# ControlNet Pipelines
-CONTROLNET_MODELS = {
-  "CANNY": {
-    "model_id": "lllyasviel/sd-controlnet-canny",
-    "slug": "controlnet-canny",
-    "precision": None,
-    "revision": None,
-  },
-  "DEPTH": {
-    "model_id": "lllyasviel/sd-controlnet-depth",
-    "slug": "controlnet-depth",
-    "precision": None,
-    "revision": None,
-  }
-}
-
-# schedulers
-from diffusers import schedulers as _schedulers
-SCHEDULERS = [
-    "DPMSolverMultistepScheduler",
-    "LMSDiscreteScheduler",
-    "DDIMScheduler",
-    "PNDMScheduler",
-    "EulerAncestralDiscreteScheduler",
-    "EulerDiscreteScheduler",
-]
-
-DEFAULT_SCHEDULER = os.getenv("DEFAULT_SCHEDULER", SCHEDULERS[0])
-
-# vars
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-loaded_models = {}
-loaded_controlnet_models = {}
+# converts
+from converts import imageToCanny, imageToMLSDLines, imageToOpenpose, imageToSemanticSegmentation, imageToDepthMap, imageToNormalMap, imageToScribble, imageToHED
 
 # utils
-def decodeBase64Image(imageStr: str, name: str) -> PIL.Image:
-  image = PIL.Image.open(BytesIO(base64.decodebytes(bytes(imageStr, "utf-8"))))
-  print(f'Decoded image "{name}": {image.format} {image.width}x{image.height}')
-  return image
+from utils import device, decodeBase64Image, encodeBase64Image, normalizeImage, clearCache
 
-def encodeBase64Image(image: PIL.Image) -> str:
-  buffered = BytesIO()
-  image.save(buffered, format="PNG")
-  return base64.b64encode(buffered.getvalue()).decode("utf-8")
+# config
+from config import PROJECT_PATH, HF_AUTH_TOKEN, SAVE_IMAGES, MODELS_DATA, PIPELINES, DEFAULT_PIPELINE, CONTROLNET_MODELS, SCHEDULERS, DEFAULT_SCHEDULER
 
 def getScheduler(model_id: str, scheduler_id: str) -> str:
   print(f"Initializing {scheduler_id} for {model_id}...")
@@ -115,7 +44,7 @@ def getScheduler(model_id: str, scheduler_id: str) -> str:
   return inittedScheduler
 
 # load model
-def loadModel(model_data: str):
+def loadModel(model_data: str, download: bool = False):
 
   # create models folder if it does not exist
   if not os.path.exists(PROJECT_PATH + "/models"):
@@ -139,7 +68,7 @@ def loadModel(model_data: str):
   )
   
   # save model if it is not already saved
-  if not model_folder_exists:
+  if not model_folder_exists and download:
     pipe.save_pretrained(PROJECT_PATH + "/models/" + model_data['slug'])
 
   load_time = round((time.time() - start) * 1000)
@@ -147,28 +76,28 @@ def loadModel(model_data: str):
 
   return pipe.to(device)
 
-def loadControlNetModel(model_data: str):
-  model_id = model_data["model_id"]
+def loadControlNetModel(controlnet_data: str, model_data:str = None, download: bool = False):
+  controlnet_id = controlnet_data["model_id"]
 
-  model_folder_exists = os.path.exists(PROJECT_PATH + "/models/" + model_data['slug'])
+  model_folder_exists = os.path.exists(PROJECT_PATH + "/models/" + controlnet_data['slug'])
 
   # load the model, if is already saved, load from folder, otherwise load from huggingface
-  print(f"Loading ControlNet {model_id} from {'pre_saved' if model_folder_exists else 'huggingface'}...")
-  model = ControlNetModel.from_pretrained(
-    model_id if not model_folder_exists else (PROJECT_PATH + "/models/" + model_data['slug']),
-    torch_dtype=torch.float16 if model_data["precision"] == "fp16" else None,
-    revision="fp16" if model_data["revision"] == "fp16" else None,
+  print(f"Loading ControlNet {controlnet_id} from {'pre_saved' if model_folder_exists else 'huggingface'}...")
+  controlnet_model = ControlNetModel.from_pretrained(
+    controlnet_id if not model_folder_exists else (PROJECT_PATH + "/models/" + controlnet_data['slug']),
+    torch_dtype=torch.float16 if model_data and model_data["precision"] == "fp16" else None,
+    revision="fp16" if model_data and model_data["revision"] == "fp16" else None,
     use_auth_token=HF_AUTH_TOKEN,
   )
 
   # save model if it is not already saved
-  if not model_folder_exists:
-    model.save_pretrained(PROJECT_PATH + "/models/" + model_data['slug'])
+  if not model_folder_exists and download:
+    controlnet_model.save_pretrained(PROJECT_PATH + "/models/" + controlnet_data['slug'])
   
-  return model
+  return controlnet_model
 
 # this will get the correct pipeline for the model
-def getPipeline(model_id: str, pipeline_type: str, controlnet_model_id: str = None):
+def getPipeline(model_id: str, pipeline_type: str):
   pipeclass = None
 
   # check if pipeline is supported
@@ -204,41 +133,17 @@ def getPipeline(model_id: str, pipeline_type: str, controlnet_model_id: str = No
 
   return pipeclass
 
-def getControlnet(model_id: str):
-  if model_id in CONTROLNET_MODELS:
-    model_data = CONTROLNET_MODELS[model_id]
+def getControlnet(controlnet_type: str, model_data: str):
+  if controlnet_type in CONTROLNET_MODELS:
+    controlnet_data = CONTROLNET_MODELS[controlnet_type]
     
-    if controlnet_model_id == None:
-      raise Exception(f"ControlNet not found for model {model_id}")
+    if controlnet_data == None:
+      raise Exception(f"ControlNet not found for model {controlnet_type}")
     
-    return loadControlNetModel(model_data)
+    return loadControlNetModel(controlnet_data, model_data)
   else:
-    raise Exception(f"CotrolNet not found for model {model_id}")
+    raise Exception(f"ControlNet not found for model {controlnet_type}")
 
-# it will download the image ir is a url, or decode it if it is a base64 string. Then it will resize it to match the required inputs
-def normalizeImage(image, width, height) -> PIL.Image:
-  if image != None:
-    # image is a url
-    if 'http' in image: 
-        response = requests.get(image)
-        image = PIL.Image.open(BytesIO(response.content))
-    # image is a base64 data
-    elif 'data:image' in image:
-        image = PIL.Image.open(BytesIO(base64.b64decode(image).split(',')[1]))
-    # image is a base64 string splited
-    else:
-        image = decodeBase64Image(image)
-    # resize image to match required inputs
-    image = image.resize((width, height), resample=PIL.Image.LANCZOS)
-
-  return image
-
-# clear cuda cache
-def clearCache():
-  if torch.cuda.is_available():
-    with torch.no_grad():
-      torch.cuda.empty_cache()
-  gc.collect()
   
 
 # # This is called once when the server starts
@@ -248,14 +153,19 @@ def init():
   for model_id in MODELS_DATA:
     model_data = MODELS_DATA[model_id]
     print(f"Loading {model_id}...")
-    loaded_models[model_id] = loadModel(model_data)
+    model = loadModel(model_data, download=True)
+    del model
     print(f"Loaded {model_id}")
+
+  # clear cuda cache
+  clearCache()
   
   # load controlnet models
-  for model_id in CONTROLNET_MODELS_DATA:
-    model_data = CONTROLNET_MODELS_DATA[model_id]
+  for model_id in CONTROLNET_MODELS:
+    model_data = CONTROLNET_MODELS[model_id]
     print(f"Loading ControlNet {model_id}...")
-    loaded_controlnet_models[model_id] = loadControlNetModel(model_data)
+    model = loadControlNetModel(model_data, download=True)
+    del model
     print(f"Loaded ControlNet {model_id}")
 
   # clear cuda cache
@@ -312,9 +222,6 @@ def inference(model_inputs):
       }
     }
 
-  # if model is not loaded, load it
-  if model_id not in loaded_models:
-    loaded_models[model_id] = loadModel(model_id)
 
   # get model data
   model_data = MODELS_DATA[model_id]
@@ -331,6 +238,7 @@ def inference(model_inputs):
     revision="fp16" if model_data["revision"] == "fp16" else None,
     scheduler=scheduler,
     use_auth_token=HF_AUTH_TOKEN,
+    controlnet=getControlnet(controlnet_type, model_data)
   )
 
   # Moving the model to the GPU or CPU
@@ -366,8 +274,6 @@ def inference(model_inputs):
   
   if pipeline == "CONTROLNET":
     pipe_data["image"] = init_image
-    
-    pipeclass.controlnet = getControlnet(model_id)
 
   if pipeline == "PIX2PIX":
     pipe_data["image"] = init_image
@@ -422,3 +328,63 @@ def inference(model_inputs):
     "initial_seed": seed,
     "images": images_base64
   }
+
+# # This is the convert function that is called by the server
+def convert(model_inputs):
+
+  width = model_inputs.get("width", 512)
+  height = model_inputs.get("height", 512)
+
+  init_image = normalizeImage(model_inputs.get("init_image", None), width, height)
+  convert_to = model_inputs.get("convert_to", None)
+
+  # check if controlnet is valid, if not return error
+  if convert_to not in CONTROLNETS_DATA.keys():
+    return {
+      "error": {
+        "code": "INVALID_CONVERT_TO",
+        "message": "Invalid convert_to"
+      }
+    }
+
+  # check if init_image is valid, if not return error
+  if init_image == None:
+    return {
+      "error": {
+        "code": "NO_INIT_IMAGE",
+        "message": "No init_image provided"
+      }
+    }
+
+  # covert image to the desired controlnet input
+  if convert_to == "CANNY":
+    init_image = imageToCanny(init_image)
+  elif convert_to == "MLSD":
+    init_image = imageToMLSDLines(init_image)
+  elif convert_to == "OPENPOSE":
+    init_image = imageToOpenPose(init_image)
+  elif convert_to == "SEMANTIC":
+    init_image = imageToSemanticSegmentation(init_image)
+  elif convert_to == "DEPTH":
+    init_image = imageToDepthMap(init_image)
+  elif convert_to == "NORMAL":
+    init_image = imageToNormalMap(init_image)
+  elif convert_to == "SCRIBBLE":
+    init_image = imageToScribble(init_image)
+  elif convert_to == "HED":
+    init_image = imageToHED(init_image)
+
+  # convert image back to base64
+  init_image_base64 = "data:image/png;base64," + encodeBase64Image(init_image)
+
+  # clean up
+  del init_image
+  clearCache()
+
+  return {
+    "convert_to": convert_to,
+    "width": width,
+    "height": height,
+    "image": init_image_base64
+  }
+

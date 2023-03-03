@@ -45,5 +45,27 @@ def inference(request):
 
     return response.json(output)
 
+@server.route('/convert', methods=["POST"])
+def convert(request):
+    try:
+        model_inputs = response.json.loads(request.json)
+    except:
+        model_inputs = request.json
+
+    try:
+        output = app.convert(model_inputs)
+    except Exception as err:
+        output = {
+            "error": {
+                "code": "APP_INFERENCE_ERROR",
+                "name": type(err).__name__,
+                "message": str(err),
+                "stack": traceback.format_exc(),
+            }
+        }
+        print(output)
+
+    return response.json(output)
+
 if __name__ == '__main__':
     server.run(host='0.0.0.0', port=3000, workers=torch.cuda.device_count())
