@@ -1,15 +1,17 @@
-from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline, StableDiffusionInstructPix2PixPipeline
+from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline, StableDiffusionInstructPix2PixPipeline, StableDiffusionControlNetPipeline, ControlNetModel
 import torch
 import base64
 from io import BytesIO
 import PIL
 import os
 import time
+import gc
 import requests
 from huggingface_hub.repocard import RepoCard
 
 PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
 HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
+SAVE_IMAGES = os.getenv("SAVE_IMAGES", True)
 
 # models
 MODELS_DATA = {
@@ -47,6 +49,22 @@ PIPELINES = [
 
 DEFAULT_PIPELINE = os.getenv("DEFAULT_PIPELINE", PIPELINES[0])
 
+# ControlNet Pipelines
+CONTROLNET_MODELS = {
+  "CANNY": {
+    "model_id": "lllyasviel/sd-controlnet-canny",
+    "slug": "controlnet-canny",
+    "precision": None,
+    "revision": None,
+  },
+  "DEPTH": {
+    "model_id": "lllyasviel/sd-controlnet-depth",
+    "slug": "controlnet-depth",
+    "precision": None,
+    "revision": None,
+  }
+}
+
 # schedulers
 from diffusers import schedulers as _schedulers
 SCHEDULERS = [
@@ -63,6 +81,7 @@ DEFAULT_SCHEDULER = os.getenv("DEFAULT_SCHEDULER", SCHEDULERS[0])
 # vars
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 loaded_models = {}
+loaded_controlnet_models = {}
 
 # utils
 def decodeBase64Image(imageStr: str, name: str) -> PIL.Image:
@@ -128,8 +147,28 @@ def loadModel(model_data: str):
 
   return pipe.to(device)
 
+def loadControlNetModel(model_data: str):
+  model_id = model_data["model_id"]
+
+  model_folder_exists = os.path.exists(PROJECT_PATH + "/models/" + model_data['slug'])
+
+  # load the model, if is already saved, load from folder, otherwise load from huggingface
+  print(f"Loading ControlNet {model_id} from {'pre_saved' if model_folder_exists else 'huggingface'}...")
+  model = ControlNetModel.from_pretrained(
+    model_id if not model_folder_exists else (PROJECT_PATH + "/models/" + model_data['slug']),
+    torch_dtype=torch.float16 if model_data["precision"] == "fp16" else None,
+    revision="fp16" if model_data["revision"] == "fp16" else None,
+    use_auth_token=HF_AUTH_TOKEN,
+  )
+
+  # save model if it is not already saved
+  if not model_folder_exists:
+    model.save_pretrained(PROJECT_PATH + "/models/" + model_data['slug'])
+  
+  return model
+
 # this will get the correct pipeline for the model
-def getPipeline(model_id: str, pipeline_type: str):
+def getPipeline(model_id: str, pipeline_type: str, controlnet_model_id: str = None):
   pipeclass = None
 
   # check if pipeline is supported
@@ -159,11 +198,22 @@ def getPipeline(model_id: str, pipeline_type: str):
   elif pipeline_type == "INPAINT":
     pipeclass = StableDiffusionInpaintPipeline
   elif pipeline_type == "CONTROLNET":
-    raise Exception("ControlNet not implemented") # not implemented, throw error
+    pipeclass = StableDiffusionControlNetPipeline
   elif pipeline_type == "PIX2PIX":
     pipeclass = StableDiffusionInstructPix2PixPipeline
 
   return pipeclass
+
+def getControlnet(model_id: str):
+  if model_id in CONTROLNET_MODELS:
+    model_data = CONTROLNET_MODELS[model_id]
+    
+    if controlnet_model_id == None:
+      raise Exception(f"ControlNet not found for model {model_id}")
+    
+    return loadControlNetModel(model_data)
+  else:
+    raise Exception(f"CotrolNet not found for model {model_id}")
 
 # it will download the image ir is a url, or decode it if it is a base64 string. Then it will resize it to match the required inputs
 def normalizeImage(image, width, height) -> PIL.Image:
@@ -183,19 +233,33 @@ def normalizeImage(image, width, height) -> PIL.Image:
 
   return image
 
+# clear cuda cache
+def clearCache():
+  if torch.cuda.is_available():
+    with torch.no_grad():
+      torch.cuda.empty_cache()
+  gc.collect()
+  
 
 # # This is called once when the server starts
 def init():
-  # load models
+
+  # load diffusion models
   for model_id in MODELS_DATA:
     model_data = MODELS_DATA[model_id]
     print(f"Loading {model_id}...")
     loaded_models[model_id] = loadModel(model_data)
     print(f"Loaded {model_id}")
+  
+  # load controlnet models
+  for model_id in CONTROLNET_MODELS_DATA:
+    model_data = CONTROLNET_MODELS_DATA[model_id]
+    print(f"Loading ControlNet {model_id}...")
+    loaded_controlnet_models[model_id] = loadControlNetModel(model_data)
+    print(f"Loaded ControlNet {model_id}")
 
   # clear cuda cache
-  if torch.cuda.is_available():
-    torch.cuda.empty_cache()
+  clearCache()
 
   pass
 
@@ -203,6 +267,7 @@ def init():
 def inference(model_inputs):
   model_id = model_inputs.get("model_id", None)
   pipeline = model_inputs.get("pipeline", DEFAULT_PIPELINE)
+  controlnet_type = model_inputs.get("controlnet_type", None)
   prompt = model_inputs.get("prompt", None)
   negative_prompt = model_inputs.get("negative_prompt", None)
   lora_model = model_inputs.get("lora_model", None)
@@ -217,7 +282,6 @@ def inference(model_inputs):
   # special properties to trigger pipelines
   init_image = normalizeImage(model_inputs.get("init_image", None), width, height)
   mask_image = normalizeImage(model_inputs.get("mask_image", None), width, height)
-  controlnet_hint = normalizeImage(model_inputs.get("controlnet_hint", None), width, height)
   strength = model_inputs.get("strength", 0.85)
   image_guidance = model_inputs.get("image_guidance", 1.5)
 
@@ -301,7 +365,9 @@ def inference(model_inputs):
     pipe_data["strength"] = strength
   
   if pipeline == "CONTROLNET":
-    pipe_data["controlnet_hint"] = controlnet_hint
+    pipe_data["image"] = init_image
+    
+    pipeclass.controlnet = getControlnet(model_id)
 
   if pipeline == "PIX2PIX":
     pipe_data["image"] = init_image
@@ -342,13 +408,13 @@ def inference(model_inputs):
     images_base64.append("data:image/png;base64," + encodeBase64Image(image))
 
   # TEMP save images locally for debugging
-  for i, image in enumerate(images):
-    image.save(f"./{i}.png")
+  if SAVE_IMAGES:
+    for i, image in enumerate(images):
+      image.save(f"./{i}.png")
 
   # clean up
   del pipe
-  if torch.cuda.is_available():
-    torch.cuda.empty_cache()
+  clearCache()
 
   return {
     "model_id": model_id,
