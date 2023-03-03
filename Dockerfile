@@ -15,6 +15,9 @@ RUN pip install -r requirements.txt
 # install diffusers
 RUN git clone https://github.com/huggingface/diffusers
 RUN pip install -e diffusers
+RUN git clone https://github.com/huggingface/accelerate
+RUN pip install -e accelerate
+RUN pip install xformers
 
 # copy over run script, it will run the server in ldm environment
 ADD run.sh .

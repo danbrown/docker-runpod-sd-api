@@ -248,7 +248,7 @@ def inference(model_inputs):
   )
 
   # get scheduler
-  pipe.scheduler = getScheduler(scheduler_id)
+  pipe.scheduler = getScheduler(scheduler_id, pipe.scheduler.config)
 
   # run optimizations or move to device if disabled
   if OPTIMIZE:

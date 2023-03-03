@@ -33,7 +33,7 @@ def normalizeImage(image, width, height) -> PIL.Image:
     else:
         image = decodeBase64Image(image)
     # resize image to match required inputs
-    image = image.resize((width, height), resample=PIL.Image.LANCZOS)
+    image = image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS)
 
   return image
 
