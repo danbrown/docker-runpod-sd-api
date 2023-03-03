@@ -21,10 +21,10 @@ from converts import imageToCanny, imageToMLSDLines, imageToOpenPose, imageToSem
 from utils import device, decodeBase64Image, encodeBase64Image, normalizeImage, clearCache
 
 # config
-from config import PROJECT_PATH, HF_AUTH_TOKEN, SAVE_IMAGES, MODELS_DATA, PIPELINES, DEFAULT_PIPELINE, CONTROLNET_MODELS, SCHEDULERS, DEFAULT_SCHEDULER
+from config import PROJECT_PATH, HF_AUTH_TOKEN, OPTIMIZE, SAVE_IMAGES, MODELS_DATA, PIPELINES, DEFAULT_PIPELINE, CONTROLNET_MODELS, SCHEDULERS, DEFAULT_SCHEDULER
 
-def getScheduler(model_id: str, scheduler_id: str) -> str:
-  print(f"Initializing {scheduler_id} for {model_id}...")
+def getScheduler(scheduler_id: str, config) -> str:
+  print(f"Initializing {scheduler_id}...")
 
   start = time.time()
 
@@ -32,14 +32,13 @@ def getScheduler(model_id: str, scheduler_id: str) -> str:
   if scheduler == None:
     raise Exception(f"Scheduler {scheduler_id} not found")
 
-  inittedScheduler = scheduler.from_pretrained(
-    model_id,
+  inittedScheduler = scheduler.from_config(
+    config,
     use_auth_token=HF_AUTH_TOKEN,
-    subfolder="scheduler",
   )
 
   diff = round((time.time() - start) * 1000)
-  print(f"Initialized {scheduler_id} for {model_id} in {diff}ms")
+  print(f"Initialized {scheduler_id} in {diff}ms")
 
   return inittedScheduler
 
@@ -61,6 +60,17 @@ def loadModel(model_data: str, download: bool = False):
     revision="fp16" if model_data["revision"] == "fp16" else None,
     use_auth_token=HF_AUTH_TOKEN,
   )
+
+  # run optimizations or move to device if disabled
+  if OPTIMIZE:
+    # optimize pipe using cpu offloading
+    pipe.enable_model_cpu_offload()
+
+    # enable xformers memory efficient
+    pipe.enable_xformers_memory_efficient_attention()
+  else:
+    # Moving the model to the GPU or CPU
+    pipe = pipe.to(device) 
   
   # save model if it is not already saved
   if not model_folder_exists and download:
@@ -69,7 +79,7 @@ def loadModel(model_data: str, download: bool = False):
   load_time = round((time.time() - start) * 1000)
   print(f"Loaded {model_id} in {load_time}ms")
 
-  return pipe.to(device)
+  return pipe
 
 def loadControlNetModel(controlnet_data: str, model_data:str = None, download: bool = False):
   controlnet_id = controlnet_data["model_id"]
@@ -225,23 +235,31 @@ def inference(model_inputs):
   # get model data
   model_data = MODELS_DATA[model_id]
 
-  # get pipeline
+  # get pipeline class based on pipeline type
   pipeclass = getPipeline(model_id, pipeline)
 
-  # get scheduler
-  scheduler = getScheduler(model_id, scheduler_id)
-
+  # init the pipeline
   pipe = pipeclass.from_pretrained(
     PROJECT_PATH + "/models/" + model_data['slug'],
     torch_dtype=torch.float16 if model_data["precision"] == "fp16" else None,
     revision="fp16" if model_data["revision"] == "fp16" else None,
-    scheduler=scheduler,
     use_auth_token=HF_AUTH_TOKEN,
     controlnet=getControlnet(controlnet_type, model_data)
   )
 
-  # Moving the model to the GPU or CPU
-  pipe = pipe.to(device) 
+  # get scheduler
+  pipe.scheduler = getScheduler(scheduler_id)
+
+  # run optimizations or move to device if disabled
+  if OPTIMIZE:
+    # optimize pipe using cpu offloading
+    pipe.enable_model_cpu_offload()
+
+    # enable xformers memory efficient
+    pipe.enable_xformers_memory_efficient_attention()
+  else:
+    # Moving the model to the GPU or CPU
+    pipe = pipe.to(device) 
 
   # remove safety checker
   if not safe_mode:

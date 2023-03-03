@@ -3,6 +3,7 @@ import os
 PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
 HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
 SAVE_IMAGES = os.getenv("SAVE_IMAGES", False)
+OPTIMIZE = os.getenv("OPTIMIZE", True)
 
 # models
 MODELS_DATA = {
@@ -87,6 +88,7 @@ CONTROLNET_MODELS = {
 # schedulers
 SCHEDULERS = [
     "DPMSolverMultistepScheduler",
+    "UniPCMultistepScheduler",
     "LMSDiscreteScheduler",
     "DDIMScheduler",
     "PNDMScheduler",
