@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Image Downloader</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <h1>Image Generator</h1>
+    <form>
+      <!-- prompt, negative_prompt, width, height, steps, count, seed, model_id, pipeline, controlnet_type, init_image, guidance_scale, safe_mode -->
+      <label for="prompt">Prompt:</label>
+      <textarea
+        type="text"
+        id="prompt"
+        name="prompt"
+        oninput="saveLocal('prompt', this.value)"
+        style="width: 100%; height: 100px"
+      ></textarea>
+
+      <br />
+
+      <label for="negative_prompt">Negative Prompt:</label>
+      <textarea
+        type="text"
+        id="negative_prompt"
+        name="negative_prompt"
+        oninput="saveLocal('negative_prompt', this.value)"
+        style="width: 100%; height: 100px"
+      ></textarea>
+
+      <br />
+      <br />
+
+      <label for="width">Width:</label>
+      <input
+        type="number"
+        id="width"
+        name="width"
+        value="512"
+        step="64"
+        oninput="saveLocal('width', this.value)"
+      />
+
+      <label for="height">Height:</label>
+      <input
+        type="number"
+        id="height"
+        name="height"
+        value="512"
+        step="64"
+        oninput="saveLocal('height', this.value)"
+      />
+
+      <br />
+      <br />
+
+      <label for="steps">Steps:</label>
+      <input
+        type="number"
+        id="steps"
+        name="steps"
+        value="30"
+        step="5"
+        oninput="saveLocal('steps', this.value)"
+      />
+
+      <label for="guidance_scale">Guidance Scale:</label>
+      <input
+        type="number"
+        id="guidance_scale"
+        name="guidance_scale"
+        value="10"
+        step="0.5"
+        oninput="saveLocal('guidance_scale', this.value)"
+      />
+      <label for="strength">Strength:</label>
+      <input
+        type="number"
+        id="strength"
+        name="strength"
+        value="0.85"
+        step="0.05"
+        oninput="saveLocal('strength', this.value)"
+      />
+
+      <br />
+      <br />
+
+      <label for="seed">Seed:</label>
+      <input
+        type="number"
+        id="seed"
+        name="seed"
+        value=""
+        step="1"
+        oninput="saveLocal('seed', this.value)"
+      />
+
+      <label for="count">Count:</label>
+      <input
+        type="number"
+        id="count"
+        name="count"
+        value="1"
+        step="1"
+        oninput="saveLocal('count', this.value)"
+      />
+
+      <br />
+      <br />
+
+      <label for="model_id">Model ID:</label>
+      <select
+        id="model_id"
+        name="model_id"
+        onchange="saveLocal('model_id', this.value)"
+      >
+        <!-- runwayml/stable-diffusion-v1-5, andite/anything-v4.0, darkstorm2150/Protogen_x3.4_Official_Release -->
+        <option value="runwayml/stable-diffusion-v1-5">
+          runwayml/stable-diffusion-v1-5
+        </option>
+        <option value="andite/anything-v4.0">andite/anything-v4.0</option>
+        <option value="darkstorm2150/Protogen_x3.4_Official_Release">
+          darkstorm2150/Protogen_x3.4_Official_Release
+        </option>
+      </select>
+
+      <label for="pipeline">Pipeline:</label>
+      <select
+        id="pipeline"
+        name="pipeline"
+        onchange="saveLocal('pipeline', this.value)"
+      >
+        <!-- TXT2IMG, IMG2IMG, INPAINT, PIX2PIX, CONTROLNET -->
+        <option value="TXT2IMG">TXT2IMG</option>
+        <option value="IMG2IMG">IMG2IMG</option>
+        <option value="INPAINT">INPAINT</option>
+        <option value="PIX2PIX">PIX2PIX</option>
+        <option value="CONTROLNET">CONTROLNET</option>
+      </select>
+
+      <label for="controlnet_type">Controlnet Type:</label>
+      <select
+        id="controlnet_type"
+        name="controlnet_type"
+        onchange="saveLocal('controlnet_type', this.value)"
+      >
+        <option value="CANNY">CANNY</option>
+        <option value="OPENPOSE">OPENPOSE</option>
+        <option value="DEPTH">DEPTH</option>
+        <option value="NORMAL">NORMAL</option>
+        <option value="HED">HED</option>
+      </select>
+
+      <label for="scheduler">Scheduler:</label>
+      <select
+        id="scheduler"
+        name="scheduler"
+        onchange="saveLocal('scheduler', this.value)"
+      >
+        <option value="DPMSolverMultistepScheduler">
+          DPMSolverMultistepScheduler
+        </option>
+        <option value="UniPCMultistepScheduler">UniPCMultistepScheduler</option>
+        <option value="LMSDiscreteScheduler">LMSDiscreteScheduler</option>
+        <option value="DDIMScheduler">DDIMScheduler</option>
+        <option value="PNDMScheduler">PNDMScheduler</option>
+        <option value="EulerAncestralDiscreteScheduler">
+          EulerAncestralDiscreteScheduler
+        </option>
+        <option value="EulerDiscreteScheduler">EulerDiscreteScheduler</option>
+      </select>
+
+      <br />
+      <br />
+
+      <label for="init_image">Init Image:</label>
+      <input
+        type="text"
+        id="init_image"
+        name="init_image"
+        value=""
+        oninput="onInputInitImage('init_image', this.value)"
+        style="width: 100%"
+      />
+
+      <br />
+
+      <br />
+
+      <label for="safe_mode">Safe Mode:</label>
+      <input
+        type="checkbox"
+        id="safe_mode"
+        name="safe_mode"
+        value="false"
+        onclick="saveLocal('safe_mode', this.checked)"
+      />
+
+      <br />
+      <br />
+
+      <div id="loading">Loading...</div>
+
+      <button id="download">Generate Images</button>
+    </form>
+
+    <hr />
+
+    <h2>Local Images</h2>
+    <button id="refresh">Refresh Images List</button>
+
+    <ul id="image-list"></ul>
+
+    <hr />
+
+    <h2>Convert image to controlnet input</h2>
+
+    <form id="controlnet-form">
+      <label for="controlnet-image">Image:</label>
+      <input
+        type="text"
+        id="controlnet-image"
+        name="controlnet-image"
+        value=""
+        oninput="onInputInitImage('controlnet-image', this.value, 'init_img_controlnet')"
+        style="width: 100%"
+      />
+
+      <br />
+      <br />
+
+      <label for="controlnet-type">Type:</label>
+      <select
+        id="controlnet-type"
+        name="controlnet-type"
+        onchange="saveLocal('controlnet-type', this.value)"
+      >
+        <option value="CANNY">CANNY</option>
+        <option value="OPENPOSE">OPENPOSE</option>
+        <option value="DEPTH">DEPTH</option>
+        <option value="NORMAL">NORMAL</option>
+        <option value="HED">HED</option>
+      </select>
+
+      <br />
+      <br />
+
+      <div id="controlnet-loading">Loading...</div>
+
+      <button id="controlnet-download">Generate Controlnet</button>
+    </form>
+
+    <hr />
+
+    <!-- controlnet  list -->
+    <h2>Controlnet Images</h2>
+    Click on the image to use as init image
+
+    <br />
+    <br />
+
+    <button id="refresh-controlnet">Refresh Controlnet List</button>
+
+    <ul id="controlnet-list"></ul>
+
+    <script>
+      $(document).ready(function () {
+        // load all fields
+        loadLocal("prompt");
+        loadLocal("negative_prompt");
+        loadLocal("width");
+        loadLocal("height");
+        loadLocal("steps");
+        loadLocal("count");
+        loadLocal("seed");
+        loadLocal("model_id");
+        loadLocal("pipeline");
+        loadLocal("controlnet_type");
+        loadLocal("scheduler");
+        onLoadInitImage("init_image");
+        loadLocal("guidance_scale");
+        loadLocal("strength");
+        loadLocal("safe_mode");
+
+        // load
+        refreshImageList();
+        $("#loading").hide();
+
+        // controlnet
+        loadLocal("controlnet-type");
+        onLoadInitImage("controlnet-image", "init_img_controlnet");
+
+        // load
+        refreshControlNetList();
+        $("#controlnet-loading").hide();
+
+        // get inputs
+        var prompt = $("#prompt").val();
+        var negative_prompt = $("#negative_prompt").val();
+        var width = $("#width").val();
+        var height = $("#height").val();
+        var steps = $("#steps").val();
+        var count = $("#count").val();
+        var seed = $("#seed").val();
+        var model_id = $("#model_id").val();
+        var pipeline = $("#pipeline").val();
+        var controlnet_type = $("#controlnet_type").val();
+        var scheduler = $("#scheduler").val();
+        var init_image = $("#init_image").val();
+        var guidance_scale = $("#guidance_scale").val();
+        var strength = $("#strength").val();
+        var safe_mode = $("#safe_mode").val();
+
+        // controlnet image
+        var controlnet_image = $("#controlnet-image").val();
+        var controlnet_type = $("#controlnet-type").val();
+
+        // Set up event listener for download button
+        $("#download").click(function (event) {
+          event.preventDefault();
+
+          // set loading
+          $("#loading").text("Loading...");
+          $("#loading").show();
+
+          $("#download").prop("disabled", true);
+
+          const body = {
+            prompt: prompt,
+            negative_prompt: negative_prompt,
+            width: width,
+            height: height,
+            steps: steps,
+            count: count,
+            seed: seed,
+            model_id: model_id,
+            pipeline: pipeline,
+            controlnet_type: controlnet_type,
+            scheduler: scheduler,
+            init_image: init_image,
+            guidance_scale: guidance_scale,
+            strength: strength,
+            safe_mode: safe_mode,
+          };
+
+          // Make API call to server to generate images
+          $.post("/download", body, function (data) {
+            // Refresh the list of images
+            refreshImageList();
+
+            // set loading
+            $("#loading").text("Done!");
+            $("#download").prop("disabled", false);
+          });
+        });
+
+        // Set up event listener for controlnet download button
+        $("#controlnet-download").click(function (event) {
+          event.preventDefault();
+
+          // set loading
+          $("#controlnet-loading").text("Loading...");
+          $("#controlnet-loading").show();
+
+          $("#controlnet-download").prop("disabled", true);
+
+          const body = {
+            init_image: controlnet_image,
+            convert_to: controlnet_type,
+            width: width,
+            height: height,
+          };
+
+          // Make API call to server to convert images to controlnet input
+          $.post("/convert", body, function (data) {
+            // Refresh the list of images
+            refreshControlNetList();
+
+            // set loading
+            $("#controlnet-loading").text("Done!");
+            $("#controlnet-download").prop("disabled", false);
+          });
+        });
+
+        $("#refresh").click(function () {
+          refreshImageList();
+        });
+      });
+
+      function refreshImageList() {
+        $.get("/load", function (data) {
+          var $list = $("#image-list");
+          $list.empty();
+
+          $init_img = $("<img>")
+            .attr("id", "init_img")
+            .attr("src", $("#init_image").val())
+            .attr("width", "200")
+            .attr("style", "cursor: pointer;")
+            .attr("onclick", "sendValueToInitImage(this.src)");
+
+          $list.append($init_img);
+
+          for (var i = 0; i < data.length; i++) {
+            var filename = data[i];
+            var $item = $("<img>")
+              .attr("src", filename)
+              .attr("width", "200")
+              .attr("style", "cursor: pointer;")
+              .attr("onclick", "sendValueToInitImage(this.src)");
+
+            $list.append($item);
+          }
+        });
+      }
+
+      function refreshControlNetList() {
+        $.get("/load-converted", function (data) {
+          var $list = $("#controlnet-list");
+          $list.empty();
+
+          $init_img = $("<img>")
+            .attr("id", "init_img_controlnet")
+            .attr("src", $("#controlnet-image").val())
+            .attr("width", "200")
+            .attr("style", "cursor: pointer;")
+            .attr("onclick", "sendValueToInitImage(this.src)");
+
+          $list.append($init_img);
+
+          for (var i = 0; i < data.length; i++) {
+            var filename = data[i];
+            var $item = $("<img>")
+              .attr("src", filename)
+              .attr("width", "200")
+              .attr("style", "cursor: pointer;")
+              .attr("onclick", "sendValueToInitImage(this.src)");
+
+            $list.append($item);
+          }
+        });
+      }
+
+      function saveLocal(field, value) {
+        localStorage.setItem(field, value);
+      }
+
+      function loadLocal(field) {
+        var value = localStorage.getItem(field);
+        if (value) {
+          $("#" + field).val(value);
+        }
+        return value;
+      }
+
+      function onInputInitImage(field, value, image = "init_img") {
+        saveLocal(field, value);
+
+        if (!value) {
+          $(`#${image}`).hide();
+        } else {
+          $(`#${image}`).show();
+          $(`#${image}`).attr("src", value);
+        }
+      }
+
+      function onLoadInitImage(field, image = "init_img") {
+        let value = loadLocal(field);
+
+        if (!value) {
+          $(`#${image}`).hide();
+        } else {
+          $(`#${image}`).show();
+          $(`#${image}`).attr("src", value);
+        }
+      }
+
+      function sendValueToInitImage(value) {
+        // add the value to the input
+        $("#init_image").val(value);
+
+        onInputInitImage("init_image", value, "init_img");
+      }
+    </script>
+  </body>
+</html>
