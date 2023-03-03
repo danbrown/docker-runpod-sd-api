@@ -9,7 +9,7 @@
   <body>
     <script>
       // load the images.json file
-      fetch("7.json")
+      fetch("openpose.json")
         .then((response) => response.json())
         .then((data) => {
           // loop through the images
@@ -21,6 +21,8 @@
             // append the image to the body
             document.body.appendChild(img);
           });
+
+          return data;
         });
     </script>
   </body>

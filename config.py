@@ -16,17 +16,17 @@ MODELS_DATA = {
   "andite/anything-v4.0": {
     "model_id": "andite/anything-v4.0",
     "slug": "anything-v4.0",
-    "precision": "fp16",
-    "revision": "fp16",
+    "precision": None,
+    "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
   },
-  "timbrooks/instruct-pix2pix":{
-    "model_id": "timbrooks/instruct-pix2pix",
-    "slug": "instruct-pix2pix",
-    "precision": "fp16",
-    "revision": "fp16",
-    "pipelines": ["PIX2PIX"]
-  },
+  # "timbrooks/instruct-pix2pix":{
+  #   "model_id": "timbrooks/instruct-pix2pix",
+  #   "slug": "instruct-pix2pix",
+  #   "precision": "fp16",
+  #   "revision": "fp16",
+  #   "pipelines": ["PIX2PIX"]
+  # },
   "darkstorm2150/Protogen_x3.4_Official_Release":{
     "model_id": "darkstorm2150/Protogen_x3.4_Official_Release",
     "slug": "protogen-x3.4",
@@ -54,18 +54,18 @@ CONTROLNET_MODELS = {
     "model_id": "lllyasviel/sd-controlnet-canny",
     "slug": "controlnet-canny",
   },
-  "MLSD":{
-    "model_id": "lllyasviel/sd-controlnet-mlsd",
-    "slug": "controlnet-mlsd",
-  },
+  # "MLSD":{
+  #   "model_id": "lllyasviel/sd-controlnet-mlsd",
+  #   "slug": "controlnet-mlsd",
+  # },
   "OPENPOSE": {
     "model_id": "lllyasviel/sd-controlnet-openpose",
     "slug": "controlnet-openpose",
   },
-  "SEMANTIC": {
-    "model_id": "lllyasviel/sd-controlnet-seg",
-    "slug": "controlnet-semantic",
-  },
+  # "SEMANTIC": {
+  #   "model_id": "lllyasviel/sd-controlnet-seg",
+  #   "slug": "controlnet-semantic",
+  # },
   "DEPTH": {
     "model_id": "lllyasviel/sd-controlnet-depth",
     "slug": "controlnet-depth",
@@ -74,10 +74,10 @@ CONTROLNET_MODELS = {
     "model_id": "lllyasviel/sd-controlnet-normal",
     "slug": "controlnet-normal",
   },
-  "SCRIBBLE": {
-    "model_id": "lllyasviel/sd-controlnet-scribble",
-    "slug": "controlnet-scribble",
-  },
+  # "SCRIBBLE": {
+  #   "model_id": "lllyasviel/sd-controlnet-scribble",
+  #   "slug": "controlnet-scribble",
+  # },
   "HED": {
     "model_id": "lllyasviel/sd-controlnet-hed",
     "slug": "controlnet-hed",

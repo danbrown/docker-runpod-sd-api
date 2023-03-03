@@ -15,7 +15,7 @@ import requests
 from huggingface_hub.repocard import RepoCard
 
 # converts
-from converts import imageToCanny, imageToMLSDLines, imageToOpenpose, imageToSemanticSegmentation, imageToDepthMap, imageToNormalMap, imageToScribble, imageToHED
+from converts import imageToCanny, imageToMLSDLines, imageToOpenPose, imageToSemanticSegmentation, imageToDepthMap, imageToNormalMap, imageToScribble, imageToHED
 
 # utils
 from utils import device, decodeBase64Image, encodeBase64Image, normalizeImage, clearCache
@@ -45,11 +45,6 @@ def getScheduler(model_id: str, scheduler_id: str) -> str:
 
 # load model
 def loadModel(model_data: str, download: bool = False):
-
-  # create models folder if it does not exist
-  if not os.path.exists(PROJECT_PATH + "/models"):
-    os.mkdir(PROJECT_PATH + "/models")
-  
   model_folder_exists = os.path.exists(PROJECT_PATH + "/models/" + model_data['slug'])
 
   start = time.time()
@@ -148,6 +143,10 @@ def getControlnet(controlnet_type: str, model_data: str):
 
 # # This is called once when the server starts
 def init():
+
+  # create models folder if it does not exist
+  if not os.path.exists(PROJECT_PATH + "/models"):
+    os.mkdir(PROJECT_PATH + "/models")
 
   # load diffusion models
   for model_id in MODELS_DATA:
@@ -339,7 +338,7 @@ def convert(model_inputs):
   convert_to = model_inputs.get("convert_to", None)
 
   # check if controlnet is valid, if not return error
-  if convert_to not in CONTROLNETS_DATA.keys():
+  if convert_to not in CONTROLNET_MODELS:
     return {
       "error": {
         "code": "INVALID_CONVERT_TO",
@@ -356,26 +355,40 @@ def convert(model_inputs):
       }
     }
 
+  images_base64 = []
+
   # covert image to the desired controlnet input
   if convert_to == "CANNY":
     init_image = imageToCanny(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+
   elif convert_to == "MLSD":
     init_image = imageToMLSDLines(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    
   elif convert_to == "OPENPOSE":
     init_image = imageToOpenPose(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+
   elif convert_to == "SEMANTIC":
     init_image = imageToSemanticSegmentation(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+
   elif convert_to == "DEPTH":
     init_image = imageToDepthMap(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+
   elif convert_to == "NORMAL":
     init_image = imageToNormalMap(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+
   elif convert_to == "SCRIBBLE":
     init_image = imageToScribble(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+
   elif convert_to == "HED":
     init_image = imageToHED(init_image)
-
-  # convert image back to base64
-  init_image_base64 = "data:image/png;base64," + encodeBase64Image(init_image)
+    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
 
   # clean up
   del init_image
@@ -385,6 +398,6 @@ def convert(model_inputs):
     "convert_to": convert_to,
     "width": width,
     "height": height,
-    "image": init_image_base64
+    "images": images_base64
   }
 
