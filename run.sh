@@ -6,7 +6,10 @@
 # install the requirements, it is already installed in the docker image, but just in case
 # pip install -r api/requirements.txt
 
+# pull the latest changes
+cd ./api && git pull && cd ..
+
 # runs the server in the background, if the SERVER_AUTOSTART is set
 if [ $SERVER_AUTOSTART ] ; then
-    python api/server.py &
+    python ./api/server.py &
 fi
