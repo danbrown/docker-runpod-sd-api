@@ -6,7 +6,7 @@ const fs = require("fs");
 const app = express();
 const port = 3000;
 
-const API_URL = "https://o8bwd0d4xqff9p-3000.proxy.runpod.net";
+const API_URL = "https://coybbfrgd736ud-3000.proxy.runpod.net";
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -27,7 +27,7 @@ app.post("/download", (apiReq, apiRes) => {
   const model_id = apiReq.body.model_id;
   const pipeline = apiReq.body.pipeline;
   const controlnet_type = apiReq.body.controlnet_type;
-  const scheduler = apiReq.body.scheduler;
+  const scheduler_id = apiReq.body.scheduler_id;
   const init_image = apiReq.body.init_image;
   const guidance_scale = apiReq.body.guidance_scale;
   const strength = apiReq.body.strength;
@@ -50,7 +50,7 @@ app.post("/download", (apiReq, apiRes) => {
       model_id: model_id,
       pipeline: pipeline,
       controlnet_type: controlnet_type,
-      scheduler: scheduler,
+      scheduler_id: scheduler_id,
       init_image: init_image,
       guidance_scale: parseFloat(guidance_scale),
       strength: parseFloat(strength),
@@ -93,7 +93,7 @@ app.get("/load", (req, res) => {
 
     const jsonFiles = files.filter((file: any) => file.endsWith(".json"));
 
-    const images = [];
+    let images = [];
     // take the content of all json
     for (let i = 0; i < jsonFiles.length; i++) {
       const jsonFile = jsonFiles[i];
@@ -102,7 +102,7 @@ app.get("/load", (req, res) => {
         "utf8"
       );
       const parsedJson = JSON.parse(jsonContent);
-      images.push(parsedJson.images);
+      images = images.concat(parsedJson.images);
     }
 
     res.json(images);
@@ -164,7 +164,7 @@ app.get("/load-converted", (req, res) => {
 
     const jsonFiles = files.filter((file: any) => file.endsWith(".json"));
 
-    const images = [];
+    let images = [];
     // take the content of all json
     for (let i = 0; i < jsonFiles.length; i++) {
       const jsonFile = jsonFiles[i];
@@ -173,7 +173,7 @@ app.get("/load-converted", (req, res) => {
         "utf8"
       );
       const parsedJson = JSON.parse(jsonContent);
-      images.push(parsedJson.images);
+      images = images.concat(parsedJson.images);
     }
 
     res.json(images);

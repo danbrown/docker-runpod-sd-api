@@ -28,10 +28,10 @@ def normalizeImage(image, width, height) -> PIL.Image:
         image = PIL.Image.open(BytesIO(response.content))
     # image is a base64 data
     elif 'data:image' in image:
-        image = PIL.Image.open(BytesIO(base64.b64decode(image).split(',')[1]))
+        image = decodeBase64Image(image.split(',')[1], 'base64')
     # image is a base64 string splited
     else:
-        image = decodeBase64Image(image)
+        image = decodeBase64Image(image, 'base64')
     # resize image to match required inputs
     image = image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS)
 

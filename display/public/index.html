@@ -153,11 +153,11 @@
         <option value="HED">HED</option>
       </select>
 
-      <label for="scheduler">Scheduler:</label>
+      <label for="scheduler_id">Scheduler:</label>
       <select
-        id="scheduler"
-        name="scheduler"
-        onchange="saveLocal('scheduler', this.value)"
+        id="scheduler_id"
+        name="scheduler_id"
+        onchange="saveLocal('scheduler_id', this.value)"
       >
         <option value="DPMSolverMultistepScheduler">
           DPMSolverMultistepScheduler
@@ -278,7 +278,7 @@
         loadLocal("model_id");
         loadLocal("pipeline");
         loadLocal("controlnet_type");
-        loadLocal("scheduler");
+        loadLocal("scheduler_id");
         onLoadInitImage("init_image");
         loadLocal("guidance_scale");
         loadLocal("strength");
@@ -296,30 +296,30 @@
         refreshControlNetList();
         $("#controlnet-loading").hide();
 
-        // get inputs
-        var prompt = $("#prompt").val();
-        var negative_prompt = $("#negative_prompt").val();
-        var width = $("#width").val();
-        var height = $("#height").val();
-        var steps = $("#steps").val();
-        var count = $("#count").val();
-        var seed = $("#seed").val();
-        var model_id = $("#model_id").val();
-        var pipeline = $("#pipeline").val();
-        var controlnet_type = $("#controlnet_type").val();
-        var scheduler = $("#scheduler").val();
-        var init_image = $("#init_image").val();
-        var guidance_scale = $("#guidance_scale").val();
-        var strength = $("#strength").val();
-        var safe_mode = $("#safe_mode").val();
-
-        // controlnet image
-        var controlnet_image = $("#controlnet-image").val();
-        var controlnet_type = $("#controlnet-type").val();
-
         // Set up event listener for download button
         $("#download").click(function (event) {
           event.preventDefault();
+
+          // get inputs
+          var prompt = $("#prompt").val();
+          var negative_prompt = $("#negative_prompt").val();
+          var width = $("#width").val();
+          var height = $("#height").val();
+          var steps = $("#steps").val();
+          var count = $("#count").val();
+          var seed = $("#seed").val();
+          var model_id = $("#model_id").val();
+          var pipeline = $("#pipeline").val();
+          var controlnet_type = $("#controlnet_type").val();
+          var scheduler_id = $("#scheduler_id").val();
+          var init_image = $("#init_image").val();
+          var guidance_scale = $("#guidance_scale").val();
+          var strength = $("#strength").val();
+          var safe_mode = $("#safe_mode").val();
+
+          // controlnet image
+          var controlnet_image = $("#controlnet-image").val();
+          var controlnet_type = $("#controlnet-type").val();
 
           // set loading
           $("#loading").text("Loading...");
@@ -338,7 +338,7 @@
             model_id: model_id,
             pipeline: pipeline,
             controlnet_type: controlnet_type,
-            scheduler: scheduler,
+            scheduler_id: scheduler_id,
             init_image: init_image,
             guidance_scale: guidance_scale,
             strength: strength,
@@ -359,6 +359,27 @@
         // Set up event listener for controlnet download button
         $("#controlnet-download").click(function (event) {
           event.preventDefault();
+
+          // get inputs
+          var prompt = $("#prompt").val();
+          var negative_prompt = $("#negative_prompt").val();
+          var width = $("#width").val();
+          var height = $("#height").val();
+          var steps = $("#steps").val();
+          var count = $("#count").val();
+          var seed = $("#seed").val();
+          var model_id = $("#model_id").val();
+          var pipeline = $("#pipeline").val();
+          var controlnet_type = $("#controlnet_type").val();
+          var scheduler_id = $("#scheduler_id").val();
+          var init_image = $("#init_image").val();
+          var guidance_scale = $("#guidance_scale").val();
+          var strength = $("#strength").val();
+          var safe_mode = $("#safe_mode").val();
+
+          // controlnet image
+          var controlnet_image = $("#controlnet-image").val();
+          var controlnet_type = $("#controlnet-type").val();
 
           // set loading
           $("#controlnet-loading").text("Loading...");

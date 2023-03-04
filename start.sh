@@ -27,20 +27,12 @@ fi
 # Start Jupyter Lab
 if [[ $JUPYTER_PASSWORD ]]
 then
-    ln -sf /examples /workspace
-    ln -sf /root/welcome.ipynb /workspace
-
-    pip install jupyterlab
-    pip install jupyterlab-git
-    pip install jupyter
-
     cd /
-    jupyter lab --allow-root --no-browser --port=8888 --ip=* \
-        --ServerApp.terminado_settings='{"shell_command":["/bin/bash"]}' \
-        --ServerApp.token=$JUPYTER_PASSWORD --ServerApp.allow_origin=* --ServerApp.preferred_dir=/workspace
+    conda run -n ldm bash -c "jupyter lab --ip=* --port=8888 --no-browser --allow-root --ServerApp.token='$JUPYTER_PASSWORD' --ServerApp.allow_origin=* --FileContentsManager.preferred_dir=/workspace --NotebookApp.terminado_settings='{\"shell_command\": [\"/bin/bash\"]}' &" &
     echo "Jupyter Lab Started"
 fi
 
 echo "Container Started Successfully"
 
 sleep infinity
+

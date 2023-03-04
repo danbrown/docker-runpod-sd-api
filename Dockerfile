@@ -1,5 +1,5 @@
 
-ARG FROM_IMAGE="odanielbrown/runpod-base:v7"
+ARG FROM_IMAGE="odanielbrown/sd-base:v10"
 FROM ${FROM_IMAGE} as base
 ENV FROM_IMAGE=${FROM_IMAGE}
 
@@ -8,16 +8,13 @@ WORKDIR /workspace
 
 SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 
-# install requirements
-ADD requirements.txt .
-RUN pip install -r requirements.txt
+# get the api
+RUN git clone https://github.com/danbrown/docker-runpod-sd-api.git api
 
-# install diffusers
-RUN git clone https://github.com/huggingface/diffusers
-RUN pip install -e diffusers
-RUN git clone https://github.com/huggingface/accelerate
-RUN pip install -e accelerate
-RUN pip install xformers
+# install requirements
+WORKDIR /workspace/api
+RUN pip install -r requirements.txt
+WORKDIR /workspace
 
 # copy over run script, it will run the server in ldm environment
 ADD run.sh .

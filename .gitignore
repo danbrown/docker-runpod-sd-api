@@ -1,4 +1,3 @@
 node_modules
 old
-images
-converted
+display/public/**/*.json

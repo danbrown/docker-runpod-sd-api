@@ -1,9 +1,10 @@
 import os
+import torch
 
 PROJECT_PATH = os.path.dirname(os.path.realpath(__file__))
 HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
 SAVE_IMAGES = os.getenv("SAVE_IMAGES", False)
-OPTIMIZE = os.getenv("OPTIMIZE", True)
+OPTIMIZE = os.getenv("OPTIMIZE", torch.cuda.is_available())
 
 # models
 MODELS_DATA = {
