@@ -43,13 +43,6 @@ MODELS_DATA = {
     "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
   },
-  "Lykon/NeverEnding-Dream": {
-    "model_id": "Lykon/NeverEnding-Dream",
-    "slug": "neverending-dream",
-    "precision": None,
-    "revision": None,
-    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  },
   "andite/pastel-mix": {
     "model_id": "andite/pastel-mix",
     "slug": "pastel-mix",
@@ -83,6 +76,13 @@ MODELS_DATA = {
   "danbrown/AyoniMix_V2":{
     "model_id": "danbrown/AyoniMix_V2",
     "slug": "ayonimix-v2",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
+  "danbrown/NeverEnding-Dream": {
+    "model_id": "danbrown/NeverEnding-Dream",
+    "slug": "neverending-dream",
     "precision": None,
     "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
@@ -122,18 +122,18 @@ CONTROLNET_MODELS = {
     "model_id": "lllyasviel/sd-controlnet-canny",
     "slug": "controlnet-canny",
   },
-  # "MLSD":{
-  #   "model_id": "lllyasviel/sd-controlnet-mlsd",
-  #   "slug": "controlnet-mlsd",
-  # },
+  "MLSD":{
+    "model_id": "lllyasviel/sd-controlnet-mlsd",
+    "slug": "controlnet-mlsd",
+  },
   "OPENPOSE": {
     "model_id": "lllyasviel/sd-controlnet-openpose",
     "slug": "controlnet-openpose",
   },
-  # "SEMANTIC": {
-  #   "model_id": "lllyasviel/sd-controlnet-seg",
-  #   "slug": "controlnet-semantic",
-  # },
+  "SEMANTIC": {
+    "model_id": "lllyasviel/sd-controlnet-seg",
+    "slug": "controlnet-semantic",
+  },
   "DEPTH": {
     "model_id": "lllyasviel/sd-controlnet-depth",
     "slug": "controlnet-depth",
@@ -142,10 +142,10 @@ CONTROLNET_MODELS = {
     "model_id": "lllyasviel/sd-controlnet-normal",
     "slug": "controlnet-normal",
   },
-  # "SCRIBBLE": {
-  #   "model_id": "lllyasviel/sd-controlnet-scribble",
-  #   "slug": "controlnet-scribble",
-  # },
+  "SCRIBBLE": {
+    "model_id": "lllyasviel/sd-controlnet-scribble",
+    "slug": "controlnet-scribble",
+  },
   "HED": {
     "model_id": "lllyasviel/sd-controlnet-hed",
     "slug": "controlnet-hed",
