@@ -5,14 +5,13 @@ ENV FROM_IMAGE=${FROM_IMAGE}
 
 # use bash as default shell
 WORKDIR /workspace
-
 SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 
 # get the api
-RUN git clone https://github.com/danbrown/docker-runpod-sd-api.git api
+RUN git clone https://github.com/danbrown/docker-runpod-sd-api.git --branch main api
+WORKDIR /workspace/api
 
 # install requirements
-WORKDIR /workspace/api
 RUN pip install -r requirements.txt
 WORKDIR /workspace
 

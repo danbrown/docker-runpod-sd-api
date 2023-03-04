@@ -68,4 +68,4 @@ def convert(request):
     return response.json(output)
 
 if __name__ == '__main__':
-    server.run(host='0.0.0.0', port=3000, workers=torch.cuda.device_count())
+    server.run(host='0.0.0.0', port=3000, workers=torch.cuda.device_count() if torch.cuda.is_available() else 1)

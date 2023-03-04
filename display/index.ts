@@ -6,7 +6,7 @@ const fs = require("fs");
 const app = express();
 const port = 3000;
 
-const API_URL = "https://coybbfrgd736ud-3000.proxy.runpod.net";
+const API_URL = "https://cfiqcp2c46x53c-3000.proxy.runpod.net";
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));

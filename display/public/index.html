@@ -319,7 +319,7 @@
 
           // controlnet image
           var controlnet_image = $("#controlnet-image").val();
-          var controlnet_type = $("#controlnet-type").val();
+          var convert_to = $("#controlnet-type").val();
 
           // set loading
           $("#loading").text("Loading...");
@@ -379,7 +379,7 @@
 
           // controlnet image
           var controlnet_image = $("#controlnet-image").val();
-          var controlnet_type = $("#controlnet-type").val();
+          var convert_to = $("#controlnet-type").val();
 
           // set loading
           $("#controlnet-loading").text("Loading...");
@@ -389,7 +389,7 @@
 
           const body = {
             init_image: controlnet_image,
-            convert_to: controlnet_type,
+            convert_to: convert_to,
             width: width,
             height: height,
           };
