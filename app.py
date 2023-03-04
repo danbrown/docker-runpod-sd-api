@@ -2,6 +2,7 @@ from diffusers import StableDiffusionPipeline
 from diffusers import StableDiffusionImg2ImgPipeline
 from diffusers import StableDiffusionInpaintPipeline
 from diffusers import StableDiffusionInstructPix2PixPipeline
+from diffusers import StableDiffusionUpscalePipeline
 from diffusers import StableDiffusionControlNetPipeline, ControlNetModel
 from diffusers import schedulers as _schedulers
 import torch
@@ -135,6 +136,8 @@ def getPipeline(model_id: str, pipeline_type: str):
     pipeclass = StableDiffusionControlNetPipeline
   elif pipeline_type == "PIX2PIX":
     pipeclass = StableDiffusionInstructPix2PixPipeline
+  elif pipeline_type == "UPSCALE":
+    pipeclass = StableDiffusionUpscalePipeline
 
   return pipeclass
 
@@ -244,7 +247,7 @@ def inference(model_inputs):
     torch_dtype=torch.float16 if model_data["precision"] == "fp16" else None,
     revision="fp16" if model_data["revision"] == "fp16" else None,
     use_auth_token=HF_AUTH_TOKEN,
-    controlnet=getControlnet(controlnet_type, model_data)
+    controlnet=getControlnet(controlnet_type, model_data) if pipeline == "CONTROLNET" else None,
   )
 
   # get scheduler
@@ -378,35 +381,43 @@ def convert(model_inputs):
   # covert image to the desired controlnet input
   if convert_to == "CANNY":
     init_image = imageToCanny(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
   elif convert_to == "MLSD":
     init_image = imageToMLSDLines(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
     
   elif convert_to == "OPENPOSE":
     init_image = imageToOpenPose(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
   elif convert_to == "SEMANTIC":
     init_image = imageToSemanticSegmentation(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
   elif convert_to == "DEPTH":
     init_image = imageToDepthMap(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
   elif convert_to == "NORMAL":
     init_image = imageToNormalMap(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
   elif convert_to == "SCRIBBLE":
     init_image = imageToScribble(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
   elif convert_to == "HED":
     init_image = imageToHED(init_image)
-    images_base64.append("data:image/png;base64," + encodeBase64Image(init_image))
+    resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
+    images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
   # clean up
   del init_image

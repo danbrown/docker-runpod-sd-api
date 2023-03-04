@@ -35,7 +35,9 @@ def normalizeImage(image, width, height) -> PIL.Image:
     # resize image to match required inputs
     image = image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS)
 
-  return image
+    return image
+  else:
+    return None
 
 # clear cuda cache
 def clearCache():
