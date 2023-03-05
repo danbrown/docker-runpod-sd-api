@@ -122,18 +122,18 @@ CONTROLNET_MODELS = {
     "model_id": "lllyasviel/sd-controlnet-canny",
     "slug": "controlnet-canny",
   },
-  "MLSD":{
-    "model_id": "lllyasviel/sd-controlnet-mlsd",
-    "slug": "controlnet-mlsd",
-  },
+  # "MLSD":{
+  #   "model_id": "lllyasviel/sd-controlnet-mlsd",
+  #   "slug": "controlnet-mlsd",
+  # },
   "OPENPOSE": {
     "model_id": "lllyasviel/sd-controlnet-openpose",
     "slug": "controlnet-openpose",
   },
-  "SEMANTIC": {
-    "model_id": "lllyasviel/sd-controlnet-seg",
-    "slug": "controlnet-semantic",
-  },
+  # "SEMANTIC": {
+  #   "model_id": "lllyasviel/sd-controlnet-seg",
+  #   "slug": "controlnet-semantic",
+  # },
   "DEPTH": {
     "model_id": "lllyasviel/sd-controlnet-depth",
     "slug": "controlnet-depth",
