@@ -18,13 +18,13 @@ MODELS_DATA = {
   },
 
   # Special model for pix2pix
-  # "timbrooks/instruct-pix2pix":{
-  #   "model_id": "timbrooks/instruct-pix2pix",
-  #   "slug": "instruct-pix2pix",
-  #   "precision": "fp16",
-  #   "revision": "fp16",
-  #   "pipelines": ["PIX2PIX"]
-  # },
+  "timbrooks/instruct-pix2pix":{
+    "model_id": "timbrooks/instruct-pix2pix",
+    "slug": "instruct-pix2pix",
+    "precision": "fp16",
+    "revision": "fp16",
+    "pipelines": ["PIX2PIX"]
+  },
 
   # Special model for upscale
   "stabilityai/stable-diffusion-x4-upscaler":{
@@ -87,13 +87,13 @@ MODELS_DATA = {
     "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
   },
-  # "danbrown/Cheese-daddys-landscape-mix":{
-  #   "model_id": "danbrown/Cheese-daddys-landscape-mix",
-  #   "slug": "cheese-daddys-landscape-mix",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
+  "danbrown/Cheese-daddys-landscape-mix":{
+    "model_id": "danbrown/Cheese-daddys-landscape-mix",
+    "slug": "cheese-daddys-landscape-mix",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
   "danbrown/testing-1":{
     "model_id": "danbrown/testing-1",
     "slug": "testing-1",
@@ -122,18 +122,18 @@ CONTROLNET_MODELS = {
     "model_id": "lllyasviel/sd-controlnet-canny",
     "slug": "controlnet-canny",
   },
-  # "MLSD":{
-  #   "model_id": "lllyasviel/sd-controlnet-mlsd",
-  #   "slug": "controlnet-mlsd",
-  # },
+  "MLSD":{
+    "model_id": "lllyasviel/sd-controlnet-mlsd",
+    "slug": "controlnet-mlsd",
+  },
   "OPENPOSE": {
     "model_id": "lllyasviel/sd-controlnet-openpose",
     "slug": "controlnet-openpose",
   },
-  # "SEMANTIC": {
-  #   "model_id": "lllyasviel/sd-controlnet-seg",
-  #   "slug": "controlnet-semantic",
-  # },
+  "SEMANTIC": {
+    "model_id": "lllyasviel/sd-controlnet-seg",
+    "slug": "controlnet-semantic",
+  },
   "DEPTH": {
     "model_id": "lllyasviel/sd-controlnet-depth",
     "slug": "controlnet-depth",
