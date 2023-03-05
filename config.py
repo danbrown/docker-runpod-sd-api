@@ -50,13 +50,13 @@ MODELS_DATA = {
     "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
   },
-  # "hassanblend/HassanBlend1.5.1.2": {
-  #   "model_id": "hassanblend/HassanBlend1.5.1.2",
-  #   "slug": "hassanblend-v1.5.1.2",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
+  "hassanblend/HassanBlend1.5.1.2": {
+    "model_id": "hassanblend/HassanBlend1.5.1.2",
+    "slug": "hassanblend-v1.5.1.2",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
   "XpucT/Deliberate": {
     "model_id": "XpucT/Deliberate",
     "slug": "deliberate",
