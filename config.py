@@ -18,13 +18,13 @@ MODELS_DATA = {
   },
 
   # Special model for pix2pix
-  "timbrooks/instruct-pix2pix":{
-    "model_id": "timbrooks/instruct-pix2pix",
-    "slug": "instruct-pix2pix",
-    "precision": "fp16",
-    "revision": "fp16",
-    "pipelines": ["PIX2PIX"]
-  },
+  # "timbrooks/instruct-pix2pix":{
+  #   "model_id": "timbrooks/instruct-pix2pix",
+  #   "slug": "instruct-pix2pix",
+  #   "precision": "fp16",
+  #   "revision": "fp16",
+  #   "pipelines": ["PIX2PIX"]
+  # },
 
   # Special model for upscale
   "stabilityai/stable-diffusion-x4-upscaler":{
@@ -50,13 +50,13 @@ MODELS_DATA = {
     "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
   },
-  "hassanblend/HassanBlend1.5.1.2": {
-    "model_id": "hassanblend/HassanBlend1.5.1.2",
-    "slug": "hassanblend-v1.5.1.2",
-    "precision": None,
-    "revision": None,
-    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  },
+  # "hassanblend/HassanBlend1.5.1.2": {
+  #   "model_id": "hassanblend/HassanBlend1.5.1.2",
+  #   "slug": "hassanblend-v1.5.1.2",
+  #   "precision": None,
+  #   "revision": None,
+  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  # },
   "XpucT/Deliberate": {
     "model_id": "XpucT/Deliberate",
     "slug": "deliberate",
@@ -87,13 +87,13 @@ MODELS_DATA = {
     "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
   },
-  "danbrown/Cheese-daddys-landscape-mix":{
-    "model_id": "danbrown/Cheese-daddys-landscape-mix",
-    "slug": "cheese-daddys-landscape-mix",
-    "precision": None,
-    "revision": None,
-    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  },
+  # "danbrown/Cheese-daddys-landscape-mix":{
+  #   "model_id": "danbrown/Cheese-daddys-landscape-mix",
+  #   "slug": "cheese-daddys-landscape-mix",
+  #   "precision": None,
+  #   "revision": None,
+  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  # },
   "danbrown/testing-1":{
     "model_id": "danbrown/testing-1",
     "slug": "testing-1",
