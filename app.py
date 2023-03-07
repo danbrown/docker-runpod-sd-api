@@ -187,25 +187,30 @@ def init():
 
 # # This is the main inference function that is called by the server
 def inference(model_inputs):
-  model_id = model_inputs.get("model_id", None)
   pipeline = model_inputs.get("pipeline", DEFAULT_PIPELINE)
-  controlnet_type = model_inputs.get("controlnet_type", None)
+
+  # if pipeline is "CONVERT", run the convert function instead
+  if pipeline == "CONVERT":
+    return convert(model_inputs)
+
+  model_id = model_inputs.get("modelId", None)
+  controlnet_type = model_inputs.get("controlnetType", None)
   prompt = model_inputs.get("prompt", None)
-  negative_prompt = model_inputs.get("negative_prompt", None)
-  lora_model = model_inputs.get("lora_model", None)
-  scheduler_id = model_inputs.get("scheduler_id", DEFAULT_SCHEDULER)
+  negative_prompt = model_inputs.get("negativePrompt", None)
+  lora_model = model_inputs.get("loraModel", None)
+  scheduler_id = model_inputs.get("schedulerId", DEFAULT_SCHEDULER)
   width = model_inputs.get("width", 512)
   height = model_inputs.get("height", 512)
-  guidance_scale = model_inputs.get("guidance_scale", 7.5)
+  guidance_scale = model_inputs.get("guidanceScale", 7.5)
   num_inference_steps = model_inputs.get("steps", 30)
   num_images_per_prompt = model_inputs.get("count", 1)
-  safe_mode = model_inputs.get("safe_mode", True)
+  safe_mode = model_inputs.get("safeMode", True)
 
   # special properties to trigger pipelines
-  init_image = normalizeImage(model_inputs.get("init_image", None), width, height)
-  mask_image = normalizeImage(model_inputs.get("mask_image", None), width, height)
+  init_image = normalizeImage(model_inputs.get("initImage", None), width, height)
+  mask_image = normalizeImage(model_inputs.get("maskImage", None), width, height)
   strength = model_inputs.get("strength", 0.85)
-  image_guidance = model_inputs.get("image_guidance", 1.5)
+  image_guidance = model_inputs.get("imageGuidance", 1.5)
 
   # seed generator
   seed = model_inputs.get("seed", None)
@@ -356,14 +361,14 @@ def convert(model_inputs):
   height = model_inputs.get("height", 512)
 
   init_image = normalizeImage(model_inputs.get("init_image", None), width, height)
-  convert_to = model_inputs.get("convert_to", None)
+  controlnet_type = model_inputs.get("controlnet_type", None)
 
   # check if controlnet is valid, if not return error
-  if convert_to not in CONTROLNET_MODELS:
+  if controlnet_type not in CONTROLNET_MODELS:
     return {
       "error": {
-        "code": "INVALID_CONVERT_TO",
-        "message": "Invalid convert_to"
+        "code": "INVALID_CONTROLNET_TYPE",
+        "message": "Invalid controlnet_type"
       }
     }
 
@@ -379,42 +384,42 @@ def convert(model_inputs):
   images_base64 = []
 
   # covert image to the desired controlnet input
-  if convert_to == "CANNY":
+  if controlnet_type == "CANNY":
     init_image = imageToCanny(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
-  elif convert_to == "MLSD":
+  elif controlnet_type == "MLSD":
     init_image = imageToMLSDLines(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
     
-  elif convert_to == "OPENPOSE":
+  elif controlnet_type == "OPENPOSE":
     init_image = imageToOpenPose(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
-  elif convert_to == "SEMANTIC":
+  elif controlnet_type == "SEMANTIC":
     init_image = imageToSemanticSegmentation(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
-  elif convert_to == "DEPTH":
+  elif controlnet_type == "DEPTH":
     init_image = imageToDepthMap(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
-  elif convert_to == "NORMAL":
+  elif controlnet_type == "NORMAL":
     init_image = imageToNormalMap(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
-  elif convert_to == "SCRIBBLE":
+  elif controlnet_type == "SCRIBBLE":
     init_image = imageToScribble(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
 
-  elif convert_to == "HED":
+  elif controlnet_type == "HED":
     init_image = imageToHED(init_image)
     resized = init_image.resize((width, height), resample=PIL.Image.Resampling.LANCZOS) # resize to fit desired sizes
     images_base64.append("data:image/png;base64," + encodeBase64Image(resized))
@@ -424,7 +429,7 @@ def convert(model_inputs):
   clearCache()
 
   return {
-    "convert_to": convert_to,
+    "controlnet_type": controlnet_type,
     "width": width,
     "height": height,
     "images": images_base64
