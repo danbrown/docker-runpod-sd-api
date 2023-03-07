@@ -24,26 +24,8 @@ from utils import device, decodeBase64Image, encodeBase64Image, normalizeImage, 
 # config
 from config import PROJECT_PATH, HF_AUTH_TOKEN, OPTIMIZE, SAVE_IMAGES, MODELS_DATA, PIPELINES, DEFAULT_PIPELINE, CONTROLNET_MODELS, SCHEDULERS, DEFAULT_SCHEDULER
 
-def getScheduler(scheduler_id: str, config) -> str:
-  print(f"Initializing {scheduler_id}...")
 
-  start = time.time()
-
-  scheduler = getattr(_schedulers, scheduler_id)
-  if scheduler == None:
-    raise Exception(f"Scheduler {scheduler_id} not found")
-
-  inittedScheduler = scheduler.from_config(
-    config,
-    use_auth_token=HF_AUTH_TOKEN,
-  )
-
-  diff = round((time.time() - start) * 1000)
-  print(f"Initialized {scheduler_id} in {diff}ms")
-
-  return inittedScheduler
-
-# load model
+# load model and save it locally
 def loadModel(model_data: str, download: bool = False):
   model_folder_exists = os.path.exists(PROJECT_PATH + "/models/" + model_data['slug'])
 
@@ -80,7 +62,6 @@ def loadModel(model_data: str, download: bool = False):
 
   # remove huggingface cache
   clearHuggingFaceCache()
-  
 
   load_time = round((time.time() - start) * 1000)
   print(f"Loaded {model_id} in {load_time}ms")
@@ -104,6 +85,9 @@ def loadControlNetModel(controlnet_data: str, model_data:str = None, download: b
   # save model if it is not already saved
   if not model_folder_exists and download:
     controlnet_model.save_pretrained(PROJECT_PATH + "/models/" + controlnet_data['slug'])
+
+  # remove huggingface cache
+  clearHuggingFaceCache() 
   
   return controlnet_model
 
@@ -157,7 +141,25 @@ def getControlnet(controlnet_type: str, model_data: str):
   else:
     raise Exception(f"ControlNet not found for model {controlnet_type}")
 
-  
+def getScheduler(scheduler_id: str, config) -> str:
+  print(f"Initializing {scheduler_id}...")
+
+  start = time.time()
+
+  scheduler = getattr(_schedulers, scheduler_id)
+  if scheduler == None:
+    raise Exception(f"Scheduler {scheduler_id} not found")
+
+  inittedScheduler = scheduler.from_config(
+    config,
+    use_auth_token=HF_AUTH_TOKEN,
+  )
+
+  diff = round((time.time() - start) * 1000)
+  print(f"Initialized {scheduler_id} in {diff}ms")
+
+  return inittedScheduler
+
 
 # # This is called once when the server starts
 def init():
@@ -353,9 +355,9 @@ def inference(model_inputs):
   clearCache()
 
   return {
-    "model_id": model_id,
+    "modelId": model_id,
     "pipeline": pipeline,
-    "initial_seed": seed,
+    "initialSeed": seed,
     "images": images_base64
   }
 
@@ -434,7 +436,7 @@ def convert(model_inputs):
   clearCache()
 
   return {
-    "controlnet_type": controlnet_type,
+    "controlnetType": controlnet_type,
     "width": width,
     "height": height,
     "images": images_base64
