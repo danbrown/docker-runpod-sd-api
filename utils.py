@@ -6,6 +6,9 @@ import os
 import time
 import gc
 import requests
+import numpy as np
+import sys
+import shutil
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -45,3 +48,9 @@ def clearCache():
     with torch.no_grad():
       torch.cuda.empty_cache()
   gc.collect()
+
+def clearHuggingFaceCache():
+  cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "huggingface")
+  if os.path.exists(cache_dir):
+    sys.stdout.write(f"Deleting cache: {cache_dir}")
+    shutil.rmtree(cache_dir)

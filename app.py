@@ -19,7 +19,7 @@ from huggingface_hub.repocard import RepoCard
 from converts import imageToCanny, imageToMLSDLines, imageToOpenPose, imageToSemanticSegmentation, imageToDepthMap, imageToNormalMap, imageToScribble, imageToHED
 
 # utils
-from utils import device, decodeBase64Image, encodeBase64Image, normalizeImage, clearCache
+from utils import device, decodeBase64Image, encodeBase64Image, normalizeImage, clearCache, clearHuggingFaceCache
 
 # config
 from config import PROJECT_PATH, HF_AUTH_TOKEN, OPTIMIZE, SAVE_IMAGES, MODELS_DATA, PIPELINES, DEFAULT_PIPELINE, CONTROLNET_MODELS, SCHEDULERS, DEFAULT_SCHEDULER
@@ -76,6 +76,11 @@ def loadModel(model_data: str, download: bool = False):
   # save model if it is not already saved
   if not model_folder_exists and download:
     pipe.save_pretrained(PROJECT_PATH + "/models/" + model_data['slug'])
+
+
+  # remove huggingface cache
+  clearHuggingFaceCache()
+  
 
   load_time = round((time.time() - start) * 1000)
   print(f"Loaded {model_id} in {load_time}ms")
