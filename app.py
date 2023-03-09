@@ -367,8 +367,8 @@ def convert(model_inputs):
   width = model_inputs.get("width", 512)
   height = model_inputs.get("height", 512)
 
-  init_image = normalizeImage(model_inputs.get("init_image", None), width, height)
-  controlnet_type = model_inputs.get("controlnet_type", None)
+  init_image = normalizeImage(model_inputs.get("initImage", None), width, height)
+  controlnet_type = model_inputs.get("controlnetType", None)
 
   # check if controlnet is valid, if not return error
   if controlnet_type not in CONTROLNET_MODELS:
