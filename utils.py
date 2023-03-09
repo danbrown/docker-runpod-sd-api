@@ -24,7 +24,7 @@ def encodeBase64Image(image: PIL.Image) -> str:
 
 # it will download the image ir is a url, or decode it if it is a base64 string. Then it will resize it to match the required inputs
 def normalizeImage(image, width, height) -> PIL.Image:
-  if image != None:
+  if image != None and image != '':
     # image is a url
     if 'http' in image: 
         response = requests.get(image)
