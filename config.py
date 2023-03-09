@@ -36,50 +36,50 @@ MODELS_DATA = {
   },
 
   # Other models
-  # "andite/anything-v4.0": {
-  #   "model_id": "andite/anything-v4.0",
-  #   "slug": "anything-v4.0",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
-  # "andite/pastel-mix": {
-  #   "model_id": "andite/pastel-mix",
-  #   "slug": "pastel-mix",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
-  # "hassanblend/HassanBlend1.5.1.2": {
-  #   "model_id": "hassanblend/HassanBlend1.5.1.2",
-  #   "slug": "hassanblend-v1.5.1.2",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
-  # "XpucT/Deliberate": {
-  #   "model_id": "XpucT/Deliberate",
-  #   "slug": "deliberate",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
+  "andite/anything-v4.0": {
+    "model_id": "andite/anything-v4.0",
+    "slug": "anything-v4.0",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
+  "andite/pastel-mix": {
+    "model_id": "andite/pastel-mix",
+    "slug": "pastel-mix",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
+  "hassanblend/HassanBlend1.5.1.2": {
+    "model_id": "hassanblend/HassanBlend1.5.1.2",
+    "slug": "hassanblend-v1.5.1.2",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
+  "XpucT/Deliberate": {
+    "model_id": "XpucT/Deliberate",
+    "slug": "deliberate",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
 
-  # # converted models
-  # "danbrown/A-to-Zovya-RPG-v1-5":{
-  #   "model_id": "danbrown/A-to-Zovya-RPG-v1-5",
-  #   "slug": "a-to-zovya",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
-  # "danbrown/AyoniMix_V2":{
-  #   "model_id": "danbrown/AyoniMix_V2",
-  #   "slug": "ayonimix-v2",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
+  # converted models
+  "danbrown/A-to-Zovya-RPG-v1-5":{
+    "model_id": "danbrown/A-to-Zovya-RPG-v1-5",
+    "slug": "a-to-zovya",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
+  "danbrown/AyoniMix_V2":{
+    "model_id": "danbrown/AyoniMix_V2",
+    "slug": "ayonimix-v2",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
   "danbrown/NeverEnding-Dream": {
     "model_id": "danbrown/NeverEnding-Dream",
     "slug": "neverending-dream",
@@ -87,20 +87,20 @@ MODELS_DATA = {
     "revision": None,
     "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
   },
-  # "danbrown/Cheese-daddys-landscape-mix":{
-  #   "model_id": "danbrown/Cheese-daddys-landscape-mix",
-  #   "slug": "cheese-daddys-landscape-mix",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
-  # "danbrown/testing-1":{
-  #   "model_id": "danbrown/testing-1",
-  #   "slug": "testing-1",
-  #   "precision": None,
-  #   "revision": None,
-  #   "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
-  # },
+  "danbrown/Cheese-daddys-landscape-mix":{
+    "model_id": "danbrown/Cheese-daddys-landscape-mix",
+    "slug": "cheese-daddys-landscape-mix",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
+  "danbrown/testing-1":{
+    "model_id": "danbrown/testing-1",
+    "slug": "testing-1",
+    "precision": None,
+    "revision": None,
+    "pipelines": ["TXT2IMG", "IMG2IMG", "INPAINT", "CONTROLNET"]
+  },
 }
 
 # pipelines
